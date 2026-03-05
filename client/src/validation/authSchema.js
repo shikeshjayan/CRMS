@@ -1,0 +1,53 @@
+import * as yup from "yup";
+
+// Reusable rules
+const nameRule = yup
+  .string()
+  .trim()
+  .required("Username is required")
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be less than 30 characters")
+  .matches(/^[A-Za-z ]+$/, "Username can only contain letters and spaces");
+
+const emailRule = yup
+  .string()
+  .trim()
+  .required("Email is required")
+  .email("Please enter a valid email")
+  .matches(
+    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|net|org|hotmail|outlook)$/i,
+  );
+
+const passwordRule = yup
+  .string()
+  .trim()
+  .required("Password is required")
+  .min(6, "Password must be at least 6 characters")
+  .max(50, "Password must be less than 50 characters") // optional max length
+  .matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$/,
+    "Password must contain uppercase, lowercase, number, and special character",
+  );
+
+// Signup schema
+export const signupSchema = yup.object({
+  username: nameRule,
+  email: emailRule,
+  password: passwordRule,
+  confirmPassword: yup
+    .string()
+    .trim()
+    .required("Confirm password is required")
+    .oneOf([yup.ref("password")], "Passwords do not match"),
+});
+
+// Signin schema
+export const signinSchema = yup.object({
+  email: emailRule,
+  password: yup
+    .string()
+    .trim()
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .max(50, "Password must be less than 50 characters"),
+});
