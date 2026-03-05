@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
 const navItems = [
@@ -105,71 +105,33 @@ const navItems = [
   },
 ];
 
-/**
- * Role-based responsive navigation
- * Desktop sidebar (collapsible) + Mobile bottom tabs
- */
 const DashNavigation = () => {
   const { user } = useContext(AuthContext);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Filter nav items based on user role
-  const filteredNavItems = navItems.filter((item) =>
-    user?.role ? item.roles.includes(user.role) : false,
-  );
-
-  // Auto-expand on mobile for better UX
-  useEffect(() => {
-    if (window.innerWidth < 768) {
-      setCollapsed(false);
-    }
-  }, []);
-
-  // Handle window resize for responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        // Desktop: allow collapse state
-        return;
-      }
-      setCollapsed(false); // Mobile: always expanded
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
     <>
-      {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col bg-linear-to-b from-gray-900 to-gray-800/50 backdrop-blur-xl text-white min-h-screen transition-all duration-500 shadow-2xl border-r border-gray-700/50 z-40">
-        {/* Header with logo + collapse toggle */}
+      {/* Desktop sidebar */}
+      <aside
+        className={`hidden md:flex flex-col bg-gray-900 text-white min-h-screen transition-all duration-300 ${
+          collapsed ? "w-16" : "w-56"
+        }`}>
+        {/* Logo + collapse toggle */}
         <div
-          className={`flex items-center h-20 px-5 border-b border-gray-800/50 backdrop-blur-sm transition-all ${
+          className={`flex items-center h-16 px-4 border-b border-gray-800 ${
             collapsed ? "justify-center" : "justify-between"
           }`}>
           {!collapsed && (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-linear-to-br from-blue-500/20 to-purple-500/20 rounded-xl flex items-center justify-center shadow-lg">
-                <svg
-                  className="w-5 h-5 text-blue-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <span className="text-lg font-bold tracking-tight whitespace-nowrap">
-                CRM Panel
-              </span>
-            </div>
+            <span className="text-base font-bold tracking-tight whitespace-nowrap">
+              CRM Panel
+            </span>
           )}
-
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 backdrop-blur-sm transition-all group"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            aria-label="Toggle sidebar">
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -191,50 +153,44 @@ const DashNavigation = () => {
           </button>
         </div>
 
-        {/* Navigation links */}
-        <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
-          {filteredNavItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              title={collapsed ? item.name : undefined}
-              className={({ isActive }) =>
-                `group flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-white/20 hover:bg-white/10 ${
-                  isActive
-                    ? "bg-linear-to-r from-blue-500/90 to-purple-600/90 text-white shadow-lg hover:shadow-xl border-white/30 scale-[1.02]"
-                    : "text-gray-300 hover:text-white hover:shadow-md"
-                } ${collapsed ? "justify-center px-3" : ""}`
-              }>
-              <div className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl backdrop-blur-sm transition-all group-hover:scale-105">
-                {item.icon}
-              </div>
-              {!collapsed && (
-                <span className="whitespace-nowrap tracking-tight">
-                  {item.name}
-                </span>
-              )}
-            </NavLink>
-          ))}
+        {/* Nav links */}
+        <nav className="flex-1 py-4 px-2 space-y-1 overflow-hidden">
+          {navItems
+            .filter((link) => link.roles.includes(user?.role))
+            .map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                title={collapsed ? item.name : undefined}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  } ${collapsed ? "justify-center" : ""}`
+                }>
+                <span className="shrink-0">{item.icon}</span>
+                {!collapsed && (
+                  <span className="whitespace-nowrap">{item.name}</span>
+                )}
+              </NavLink>
+            ))}
         </nav>
       </aside>
 
-      {/* ── Mobile Bottom Navigation ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-linear-to-t from-gray-900 to-gray-800/80 backdrop-blur-xl border-t border-gray-700/50 shadow-2xl h-20 px-4 flex items-center justify-around safe-area-inset-bottom">
-        {filteredNavItems.map((item) => (
+      {/* Mobile bottom tab bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 flex items-center justify-around px-2 h-16 safe-area-pb">
+        {navItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-200 ${
-                isActive
-                  ? "text-blue-400 scale-110 shadow-lg bg-white/10 backdrop-blur-sm rounded-2xl px-3 py-2"
-                  : "text-gray-400 hover:text-gray-200 hover:scale-105"
+              `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+                isActive ? "text-blue-400" : "text-gray-500 hover:text-gray-300"
               }`
             }>
-            <div className="w-7 h-7 flex items-center justify-center rounded-lg backdrop-blur-sm">
-              {item.icon}
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider">
+            {item.icon}
+            <span className="text-[9px] font-semibold uppercase tracking-wide">
               {item.name}
             </span>
           </NavLink>
